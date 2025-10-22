@@ -8,22 +8,112 @@
 #include <vector>
 using namespace std;
 
-class MyBlock {
+class MedicalData { //clase de informacion de salud especifica
+
+    string city;
+    string hospitalVisited;
+    string doctorsName;
+    int date;
+
+    public:
+
+    MedicalData(string city, int date) : city(city), date(date) {}; //constructor para creacion de genesis block
+
+    MedicalData(string city, string hospitalVisited, string doctorsName, int date) : city(city), doctorsName(doctorsName), date(date) {};
+    //constructor para tipico block
+};
+
+class Block {
 private:
-    float timeStamp = 0;
-    string dataStored = "";
-    int blockID = 0;
-    CryptoPP::SHA256 hash;
-    CryptoPP::SHA256 previousHash;
+    time_t timeStamp; //tiempo creado
+    string medicalReason; //razon medico , o en caso de inicar cuenta sera el nombre
+    MedicalData specificData; //datos especificos
+    int blockID = 0; //ID va ser igual a al tamano del vector al anadir un bloque
+    string hash; //hash de bloque
+    string previousHash; //hash previo
+
+    string calculateBlockHash() const //funcion para usar sha-256 generar un hash tipo string
+    {
+        string hashConvertible = medicalReason + to_string(blockID) + previousHash + to_string(timeStamp);
+        string output;
+        //hash unico sera la razon, id del bloque, hash previo, e tiempo creado para
+        //crear el hash unico e identificar trampa
+
+        CryptoPP::SHA256 sha256; //delarar objeto sha
+        CryptoPP::StringSource ss(hashConvertible, true, //pasar por pipeline
+        new CryptoPP::HashFilter(sha256,
+        new CryptoPP::HexEncoder(
+        new CryptoPP::StringSink(output)
+        )
+        )
+        );
+
+        return output;
+    };
 
 
     public:
-    MyBlock() {}
-    ~MyBlock() {}
+    Block(int blockID, string dataStored, const string previousHash, const MedicalData data) : blockID(blockID), medicalReason(dataStored), timeStamp(std::time(nullptr)), specificData(data) {
+        hash = calculateBlockHash();
+        this->previousHash = previousHash; //guardar hash previo
+    }
+    ~Block() {}
+
+    string getHash() {
+        return hash; //get hash para usar cuando declarando el hash previo de un nuevo bloque
+    }
+
+    void printBlock() {
+        cout << "Registry ID: " << blockID << endl;
+        cout << "Information stored: " << medicalReason << endl;
+        cout << "Time Stamp: " << timeStamp << endl;
+        cout << "Hash: " << hash << endl;
+        cout << "Previous hash: " << previousHash << endl;
+    }
+};
+
+class BlockChain {
+    private:
+
+    std::vector<Block> chain;
+
+    Block createGenesisBlock(const string& name, const MedicalData& initalData) {
+        return Block(0, name, "0" , initalData);
+    }
+    //bloque genesis inicia con nombre de paciente y el constructor hecho para iniciar una cuenta en MedicalData
+
+public:
+
+    BlockChain(const string& name, const MedicalData& firstData) {
+        chain.push_back(createGenesisBlock(name, firstData));
+    }
+    //constructor del blockchain (inicar con genesis SIEMPRE)
+
+    void addBlock(const MedicalData& medicalInfo, const string& visitReason) {
+        int blockIdentity = chain.size();
+        string previousHash = chain.back().getHash();
+        Block freshBlock(blockIdentity, visitReason, previousHash, medicalInfo);
+        chain.push_back(freshBlock);
+    }
+    //anadir un bloque segun datos especificos, blockchain sera un contenedor vector unicamente vinculado mediante
+    //los hashes de cada bloque unicos
 
 };
-// TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 int main() {
 
-    return 0;
+    int dateCreated =0;
+    string locationCreated = "";
+
+    string fullName;
+    cout << "Enter your full name: " << endl;
+    getline(cin, fullName);
+    cout << "Enter date of your account creation in form of MMDDYYYY" << endl;
+    cin >> dateCreated;
+    cout << "In which city are you creating this account in?" << endl;
+    cin >> locationCreated;
+
+    MedicalData firstData(locationCreated, dateCreated);
+    BlockChain blocks(fullName, firstData);
+
+
 }
