@@ -17,10 +17,16 @@ class MedicalData { //clase de informacion de salud especifica
 
     public:
 
-    MedicalData(string city, int date) : city(city), date(date) {}; //constructor para creacion de genesis block
-
-    MedicalData(string city, string hospitalVisited, string doctorsName, int date) : city(city), doctorsName(doctorsName), date(date) {};
+    MedicalData(string city, string hospitalVisited, string doctorsName, int date) : city(city), hospitalVisited(hospitalVisited), doctorsName(doctorsName), date(date) {};
     //constructor para tipico block
+
+    void printMedicalData()
+    {
+        cout << "Specialist: " << doctorsName << endl;
+        cout << "City: " << city << endl;
+        cout << "Hospital: " << hospitalVisited << endl;
+        cout << "Date: " << date << endl;
+    }
 };
 
 class Block {
@@ -54,8 +60,9 @@ private:
 
     public:
     Block(int blockID, string dataStored, const string previousHash, const MedicalData data) : blockID(blockID), medicalReason(dataStored), timeStamp(std::time(nullptr)), specificData(data) {
-        hash = calculateBlockHash();
         this->previousHash = previousHash; //guardar hash previo
+        hash = calculateBlockHash();
+
     }
     ~Block() {}
 
@@ -66,9 +73,8 @@ private:
     void printBlock() {
         cout << "Registry ID: " << blockID << endl;
         cout << "Information stored: " << medicalReason << endl;
-        cout << "Time Stamp: " << timeStamp << endl;
-        cout << "Hash: " << hash << endl;
-        cout << "Previous hash: " << previousHash << endl;
+        specificData.printMedicalData();
+
     }
 };
 
@@ -98,22 +104,36 @@ public:
     //anadir un bloque segun datos especificos, blockchain sera un contenedor vector unicamente vinculado mediante
     //los hashes de cada bloque unicos
 
+    void printBlockChain() {
+        for (auto c : chain) {
+            cout << " - - - - - - - - - - - - - - - - - - - - - - " << endl;
+            c.printBlock();
+        }
+    }
+
 };
 int main() {
 
     int dateCreated =0;
-    string locationCreated = "";
+    string locationCreated = "", hospitalAccountCreated = "", doctorsName = "";
 
     string fullName;
-    cout << "Enter your full name: " << endl;
+    cout << "Patients name: " << endl;
     getline(cin, fullName);
-    cout << "Enter date of your account creation in form of MMDDYYYY" << endl;
+    cout << "Name of doctor creating account: " << endl;
+    getline(cin, doctorsName);
+    cout << "Hospital: " << endl;
+    getline(cin, hospitalAccountCreated);
+    cout << "Enter date of account creation in form of MMDDYYYY" << endl;
     cin >> dateCreated;
     cout << "In which city are you creating this account in?" << endl;
     cin >> locationCreated;
 
-    MedicalData firstData(locationCreated, dateCreated);
+    MedicalData firstData(locationCreated, hospitalAccountCreated, doctorsName, dateCreated);
     BlockChain blocks(fullName, firstData);
+
+    blocks.printBlockChain();
+
 
 
 }
