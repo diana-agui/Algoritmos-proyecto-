@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include "cryptlib.h"
 #include "sha.h"
@@ -6,6 +7,7 @@
 #include <ctime>
 #include <string>
 #include <vector>
+
 using namespace std;
 
 class MedicalData { //clase de informacion de salud especifica
@@ -13,11 +15,13 @@ class MedicalData { //clase de informacion de salud especifica
     string city;
     string hospitalVisited;
     string doctorsName;
+    string diagnosis;
+    string treatment;
     int date;
 
     public:
 
-    MedicalData(string city, string hospitalVisited, string doctorsName, int date) : city(city), hospitalVisited(hospitalVisited), doctorsName(doctorsName), date(date) {};
+    MedicalData(string city, string hospitalVisited, string doctorsName,string diagnosis, string treatment, int date) : city(city), hospitalVisited(hospitalVisited), diagnosis(diagnosis), treatment(treatment), doctorsName(doctorsName), date(date) {};
     //constructor para tipico block
 
     void printMedicalData()
@@ -26,6 +30,8 @@ class MedicalData { //clase de informacion de salud especifica
         cout << "City: " << city << endl;
         cout << "Hospital: " << hospitalVisited << endl;
         cout << "Date: " << date << endl;
+        cout << "Treatment: " << treatment << endl;
+        cout << "Diagnosis: " << diagnosis << endl;
     }
 };
 
@@ -116,6 +122,7 @@ int main() {
 
     int dateCreated =0;
     string locationCreated = "", hospitalAccountCreated = "", doctorsName = "";
+    string firstDiagnosis = "", firstTreatment= "";
 
     string fullName;
     cout << "Patients name: " << endl;
@@ -128,8 +135,12 @@ int main() {
     cin >> dateCreated;
     cout << "In which city are you creating this account in?" << endl;
     cin >> locationCreated;
+    cout << "First diagnosis being logged: " << endl;
+    getline(cin,firstDiagnosis);
+    cout << "Treatment selected:" << endl;
+    getline(cin,firstTreatment);
 
-    MedicalData firstData(locationCreated, hospitalAccountCreated, doctorsName, dateCreated);
+    MedicalData firstData(locationCreated, hospitalAccountCreated, doctorsName,firstDiagnosis, firstTreatment, dateCreated);
     BlockChain blocks(fullName, firstData);
 
     blocks.printBlockChain();
