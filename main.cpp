@@ -1,12 +1,14 @@
 
 #include <iostream>
-#include "cryptlib.h"
-#include "sha.h"
-#include "hex.h"
-#include "filters.h"
+#include "cryptopp/cryptlib.h"
+#include "cryptopp/sha.h"
+#include "cryptopp/hex.h"
+#include "cryptopp/filters.h"
+#include <cryptopp/files.h>
 #include <ctime>
 #include <string>
 #include <vector>
+#include <limits>
 
 using namespace std;
 
@@ -23,6 +25,10 @@ class MedicalData { //clase de informacion de salud especifica
 
     MedicalData(string city, string hospitalVisited, string doctorsName,string diagnosis, string treatment, int date) : city(city), hospitalVisited(hospitalVisited), diagnosis(diagnosis), treatment(treatment), doctorsName(doctorsName), date(date) {};
     //constructor para tipico block
+
+    string getMedDataForHash() const {
+        return city + hospitalVisited + doctorsName + diagnosis + treatment + to_string(date);
+    }
 
     void printMedicalData()
     {
@@ -46,7 +52,7 @@ private:
 
     string calculateBlockHash() const //funcion para usar sha-256 generar un hash tipo string
     {
-        string hashConvertible = medicalReason + to_string(blockID) + previousHash + to_string(timeStamp);
+        string hashConvertible =  medicalReason + to_string(blockID) + previousHash + to_string(timeStamp) + specificData.getMedDataForHash();
         string output;
         //hash unico sera la razon, id del bloque, hash previo, e tiempo creado para
         //crear el hash unico e identificar trampa
@@ -112,19 +118,30 @@ public:
 
     void printBlockChain() {
         for (auto c : chain) {
-            cout << " - - - - - - - - - - - - - - - - - - - - - - " << endl;
+            cout << " - - - - - - - - - - - - - - - - - - - - - " << endl;
             c.printBlock();
         }
     }
 
 };
+
+void menuMain() {
+    cout << " ---------- MENU ---------- " << endl;
+    cout << " 1. Add a new health record " << endl;
+    cout << " 2. Print your health record" << endl;
+    cout << " 3. Verify integrity of your health record" << endl;
+}
+
 int main() {
 
     int dateCreated =0;
     string locationCreated = "", hospitalAccountCreated = "", doctorsName = "";
     string firstDiagnosis = "", firstTreatment= "";
-
     string fullName;
+
+    cout << "Welcome to the Medical Data Fetcher, we track your health records via the use of blockchains, and hashing to secure integrity. " << endl;
+
+
     cout << "Patients name: " << endl;
     getline(cin, fullName);
     cout << "Name of doctor creating account: " << endl;
@@ -136,6 +153,7 @@ int main() {
     cout << "In which city are you creating this account in?" << endl;
     cin >> locationCreated;
     cout << "First diagnosis being logged: " << endl;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
     getline(cin,firstDiagnosis);
     cout << "Treatment selected:" << endl;
     getline(cin,firstTreatment);
@@ -143,8 +161,47 @@ int main() {
     MedicalData firstData(locationCreated, hospitalAccountCreated, doctorsName,firstDiagnosis, firstTreatment, dateCreated);
     BlockChain blocks(fullName, firstData);
 
-    blocks.printBlockChain();
+    cout << "-------------- " << fullName << " -------------- " << endl;
 
+    while (true) {
+        menuMain();
 
+        int choice;
+        cin >> choice;
+
+        switch (choice) {
+            case 1: {
+                string visit, city, hospital, drName, diagnostico, tratamiento;
+                int fechaActual = 0;
+                cout << "Reason for visit: ";
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                getline(cin, visit);
+                cout << endl << "Date (MMDDYYYY): ";
+                cin >> fechaActual;
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << endl << "City being logged: ";
+                getline(cin, city);
+                cout << endl << "Hospital being logged: ";
+                getline(cin, hospital);
+                cout << endl << "Doctor being logged: ";
+                getline(cin, drName);
+                cout << endl << "Diagnosis: ";
+                getline(cin, diagnostico);
+                cout << endl << "Treatment selected: ";
+                getline(cin, tratamiento);
+
+                MedicalData med1(city, hospital, drName,diagnostico, tratamiento, fechaActual);
+                blocks.addBlock(med1, visit);
+                break;
+            }
+            case 2: blocks.printBlockChain();
+                break;
+            //case 3: cout << "INPROGRESS" << endl;
+                break;
+            // default:
+                std::cout << "INVALIDO" << endl;
+                break;
+        }
+    }
 
 }
