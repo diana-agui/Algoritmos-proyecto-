@@ -30,6 +30,14 @@ class MedicalData { //clase de informacion de salud especifica
         return city + hospitalVisited + doctorsName + diagnosis + treatment + to_string(date);
     }
 
+    void setDiagnosis(const string& newDiagnosis) {
+        diagnosis = newDiagnosis;
+    }
+
+    void setTreatment(const string& newTreatment) {
+        treatment = newTreatment;
+    }
+
     void printMedicalData()
     {
         cout << "Specialist: " << doctorsName << endl;
@@ -96,6 +104,11 @@ private:
     string getPreviousHash() const {
         return previousHash;
     }
+    void tamperData(const string& newDiagnosis, const string& newTreatment) {
+        specificData.setDiagnosis(newDiagnosis);
+        specificData.setTreatment(newTreatment);
+
+    }
 
 };
 
@@ -126,7 +139,7 @@ public:
     //los hashes de cada bloque unicos
 
     void printBlockChain() {
-        for (auto c : chain) {
+        for (auto &c : chain) {
             cout << " - - - - - - - - - - - - - - - - - - - - - " << endl;
             c.printBlock();
         }
@@ -135,7 +148,7 @@ public:
     bool verifyIntegrity() { //algoritmo de memoria asociativa
         for (size_t i = 1; i < chain.size(); i++) {
 //recorre la cadena
-            const Block& current = chain[i];  
+            const Block& current = chain[i];
             const Block& previous = chain[i - 1];
 
             //recompila el hash de cada bloque, concurriente y previo para comparar su hash
@@ -155,6 +168,17 @@ public:
         return true;
     }
 
+    bool tamperRecord(int index, const string& newDiagnosis, const string& nuevoTratamiento) {
+        if (index == 0) {
+            cout << "Invalido, bloque genesis no modificable" << endl;
+            return false;
+        }
+
+        chain[index].tamperData(newDiagnosis, nuevoTratamiento);
+        return true;
+
+    }
+
 };
 
 void menuMain() {
@@ -162,6 +186,7 @@ void menuMain() {
     cout << " 1. Add a new health record " << endl;
     cout << " 2. Print your health record" << endl;
     cout << " 3. Verify integrity of your health record" << endl;
+    cout << " 4. Change a health record to demonstrate validity of our integrity." << endl;
 }
 
 int main() {
@@ -229,6 +254,25 @@ int main() {
             case 2: blocks.printBlockChain();
                 break;
             case 3: blocks.verifyIntegrity();
+                break;
+            case 4:
+            {
+                int idToTamper;
+                string newDiagnosis, newTreatment;
+
+                cout << "Enter the ID of record you want to tamper with (cannot be 0): ";
+                cin >> idToTamper;
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+                cout << "Enter NEW fake diagnosis: ";
+                getline(cin, newDiagnosis);
+
+                cout << "Enter NEW fake treatment: ";
+                getline(cin, newTreatment);
+
+                blocks.tamperRecord(idToTamper, newDiagnosis, newTreatment);
+                break;
+            }
                 break;
             default:
                 std::cout << "INVALIDO" << endl;
