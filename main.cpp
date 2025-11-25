@@ -78,7 +78,7 @@ private:
     }
     ~Block() {}
 
-    string getHash() {
+    string getHash() const {
         return hash; //get hash para usar cuando declarando el hash previo de un nuevo bloque
     }
 
@@ -88,6 +88,15 @@ private:
         specificData.printMedicalData();
 
     }
+
+    string recomputeHash() const {
+        return calculateBlockHash();
+    }
+
+    string getPreviousHash() const {
+        return previousHash;
+    }
+
 };
 
 class BlockChain {
@@ -121,6 +130,29 @@ public:
             cout << " - - - - - - - - - - - - - - - - - - - - - " << endl;
             c.printBlock();
         }
+    }
+
+    bool verifyIntegrity() { //algoritmo de memoria asociativa
+        for (size_t i = 1; i < chain.size(); i++) {
+//recorre la cadena
+            const Block& current = chain[i];  
+            const Block& previous = chain[i - 1];
+
+            //recompila el hash de cada bloque, concurriente y previo para comparar su hash
+            //detecta unicamente tampering cuando no coinciden los hashes
+            if (current.getHash() != current.recomputeHash()) {
+                cout << "Block " << i << " hash mismatch." << endl;
+                return false;
+            }
+
+            if (current.getPreviousHash() != previous.getHash()) {
+                cout << "Block " << i << " previous hash mismatch." << endl;
+                return false;
+            }
+        }
+
+        cout << "Health record chain integrity verified. No tampering deteccted" << endl;
+        return true;
     }
 
 };
@@ -196,9 +228,9 @@ int main() {
             }
             case 2: blocks.printBlockChain();
                 break;
-            //case 3: cout << "INPROGRESS" << endl;
+            case 3: blocks.verifyIntegrity();
                 break;
-            // default:
+            default:
                 std::cout << "INVALIDO" << endl;
                 break;
         }
