@@ -1,10 +1,8 @@
-
 #include <iostream>
-#include "cryptopp/cryptlib.h"
-#include "cryptopp/sha.h"
-#include "cryptopp/hex.h"
-#include "cryptopp/filters.h"
-#include <cryptopp/files.h>
+#include "cryptlib.h"
+#include "sha.h"
+#include "hex.h"
+#include "filters.h"
 #include <ctime>
 #include <string>
 #include <vector>
@@ -145,6 +143,13 @@ public:
         }
     }
 
+    //Copia el bloque que se agrego para que todos compartan la misma informacion
+    void appendExternalBlock(const Block& b)
+    {
+        chain.push_back(b);
+    }
+
+
     bool verifyIntegrity() { //algoritmo de memoria asociativa
         for (size_t i = 1; i < chain.size(); i++) {
 //recorre la cadena
@@ -177,6 +182,13 @@ public:
         chain[index].tamperData(newDiagnosis, nuevoTratamiento);
         return true;
 
+    }
+
+    Block createNewBlock(const MedicalData& data, const string& reason) {
+        int blockIdentity = chain.size();
+        string previousHash = chain.back().getHash();
+        Block b(blockIdentity, reason, previousHash, data);
+        return b;
     }
 
 };
@@ -217,7 +229,9 @@ int main() {
 
     MedicalData firstData(locationCreated, hospitalAccountCreated, doctorsName,firstDiagnosis, firstTreatment, dateCreated);
     BlockChain blocks(fullName, firstData);
-
+    BlockChain ChainA(fullName, firstData);
+    BlockChain ChainB(fullName, firstData);
+    BlockChain ChainC(fullName, firstData);
     cout << "-------------- " << fullName << " -------------- " << endl;
 
     while (true) {
@@ -248,7 +262,15 @@ int main() {
                 getline(cin, tratamiento);
 
                 MedicalData med1(city, hospital, drName,diagnostico, tratamiento, fechaActual);
-                blocks.addBlock(med1, visit);
+                Block newBlock = blocks.createNewBlock(med1, visit);
+
+                //Añade el bloque a la cadena principal
+                blocks.appendExternalBlock(newBlock);
+
+                // Lo replica en los demás blockchains
+                ChainA.appendExternalBlock(newBlock);
+                ChainB.appendExternalBlock(newBlock);
+                ChainC.appendExternalBlock(newBlock);
                 break;
             }
             case 2: blocks.printBlockChain();
